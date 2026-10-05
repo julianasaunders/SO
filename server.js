@@ -32,6 +32,17 @@ function getMainIP() {
   return '127.0.0.1';
 }
 
+function getNetworkScope(ip) {
+  if (!ip) return 'Desconhecido';
+  if (ip === '127.0.0.1') return 'Loopback';
+  const firstOctet = Number(ip.split('.')[0]);
+  if (firstOctet >= 1 && firstOctet <= 126) return 'Privado (Classe A)';
+  if (firstOctet >= 128 && firstOctet <= 191) return 'Privado (Classe B)';
+  if (firstOctet >= 192 && firstOctet <= 223) return 'Privado (Classe C)';
+  if (firstOctet >= 224) return 'Multicast / especial';
+  return 'Público';
+}
+
 // Função para listar ficheiros no diretório do projeto
 function getProjectFiles() {
   try {
@@ -76,10 +87,14 @@ app.get('/api/system', (req, res) => {
   const networkInterfacesList = [];
   for (const [iface, details] of Object.entries(rawInterfaces)) {
     details.forEach(detail => {
+      const networkMask = detail.netmask || '255.255.255.0';
       networkInterfacesList.push({
         iface,
         ip: detail.address,
-        family: detail.family
+        family: detail.family,
+        mac: detail.mac || 'N/A',
+        mask: networkMask,
+        scope: getNetworkScope(detail.address)
       });
     });
   }
