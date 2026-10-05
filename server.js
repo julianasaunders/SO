@@ -104,7 +104,9 @@ app.get('/api/system', (req, res) => {
       platform: os.platform(),
       arch: os.arch(),
       endianness: os.endianness(),
-      nodeVersion: process.version
+      nodeVersion: process.version,
+      path: process.env.PATH || process.env.Path || 'N/A',
+      tempDir: os.tmpdir()
     },
     usuario: {
       username: os.userInfo().username,
