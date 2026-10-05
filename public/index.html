@@ -101,6 +101,64 @@
       background: rgba(165, 243, 252, 0.06);
     }
 
+    .cpu-bar {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      flex: 1;
+    }
+
+    .cpu-bar-fill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1;
+      color: #0f172a;
+      text-shadow: 0 0 1px rgba(255,255,255,0.2);
+      flex-shrink: 0;
+      max-width: 100%;
+    }
+
+    .cpu-bar-value {
+      min-width: 32px;
+      text-align: right;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .memory-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .memory-bar {
+      flex: 1;
+      height: 12px;
+      border-radius: 9999px;
+      background: rgba(148, 163, 184, 0.2);
+      overflow: hidden;
+    }
+
+    .memory-bar-fill {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0f172a;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      text-shadow: 0 0 1px rgba(255,255,255,0.2);
+    }
+
     body.light-mode .text-white,
     body.light-mode .text-slate-200,
     body.light-mode .text-slate-300,
@@ -227,8 +285,11 @@
           <p><strong class="text-slate-400">Usada:</strong> <span id="mem-used">--</span> GB</p>
           <p><strong class="text-slate-400">Livre:</strong> <span id="mem-free">--</span> GB</p>
           <p><strong class="text-slate-400">Por CPU:</strong> <span id="mem-percpu">--</span> GB</p>
-          <div class="mt-3 h-3 w-full rounded-full bg-slate-800/80 overflow-hidden">
-            <div id="mem-bar" class="h-full rounded-full bg-gradient-to-r from-pastel-cyan to-pastel-blue text-center text-[9px] font-bold text-slate-900" style="width: 0%">0%</div>
+          <div class="memory-bar-wrap mt-3">
+            <div class="memory-bar rounded-full overflow-hidden">
+              <div id="mem-bar" class="memory-bar-fill rounded-full" style="width: 0%; background: linear-gradient(90deg, #34d399, #34d399);"> </div>
+            </div>
+            <span id="mem-bar-value" class="cpu-bar-value">0%</span>
           </div>
         </div>
       </div>
@@ -368,8 +429,13 @@
         document.getElementById('mem-free').innerText = data.memoria.freeGB;
         document.getElementById('mem-percpu').innerText = data.memoria.perCpuGB;
         const memBar = document.getElementById('mem-bar');
-        memBar.style.width = data.memoria.usagePercent + '%';
-        memBar.innerText = data.memoria.usagePercent + '%';
+        const memBarValue = document.getElementById('mem-bar-value');
+        const memPercent = Math.min(100, Math.max(0, Number(data.memoria.usagePercent) || 0));
+        const memColor = memPercent < 50 ? '#34d399' : memPercent < 80 ? '#fbbf24' : '#f87171';
+        memBar.style.width = memPercent + '%';
+        memBar.style.background = `linear-gradient(90deg, ${memColor}, ${memColor})`;
+        memBar.innerText = '';
+        memBarValue.innerText = memPercent + '%';
 
         document.getElementById('cpu-cores').innerText = data.cpu.coresCount;
         document.getElementById('cpu-model').innerText = data.cpu.model;
@@ -377,14 +443,18 @@
         const cpuList = document.getElementById('cpu-cores-list');
         cpuList.innerHTML = '';
         data.cpu.cores.forEach(c => {
+          const usage = Math.min(100, Math.max(0, Number(c.usage) || 0));
+          const barColor = usage < 50 ? '#34d399' : usage < 80 ? '#fbbf24' : '#f87171';
           cpuList.innerHTML += `
             <div>
               <div class="flex justify-between text-[10px] text-slate-400">
                 <span>Core ${c.core}</span>
-                <span>${c.usage}%</span>
               </div>
-              <div class="mt-1 h-2.5 w-full rounded-full bg-slate-800/80 overflow-hidden">
-                <div class="h-full rounded-full bg-gradient-to-r from-pastel-lilac to-pastel-blue" style="width: ${c.usage}%"></div>
+              <div class="mt-1 flex items-center gap-2">
+                <div class="cpu-bar h-2.5 rounded-full bg-slate-800/80">
+                  <div class="cpu-bar-fill h-full rounded-full" style="width: ${usage}%; background: linear-gradient(90deg, ${barColor}, ${barColor});"></div>
+                </div>
+                <span class="cpu-bar-value">${usage}%</span>
               </div>
             </div>
           `;
