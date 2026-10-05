@@ -56,8 +56,17 @@
 
     .panel {
       background: var(--panel);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--panel-border);
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    .panel:hover {
+      border-color: rgba(148, 163, 184, 0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
     }
 
     #usr-temp,
@@ -254,7 +263,7 @@
         <p class="soft-label pastel-mint">IP</p>
         <p id="kpi-ip" class="mt-3 text-sm font-bold text-white">--</p>
       </div>
-      <div class="panel rounded-2xl p-4 text-center">
+      <div class="panel rounded-2xl p-4 text-center shadow-[0_0_18px_rgba(16,185,129,0.18)] hover:shadow-[0_0_20px_rgba(16,185,129,0.28)]">
         <p class="soft-label pastel-peach">Status</p>
         <div class="mt-3 flex items-center justify-center gap-2">
           <span id="kpi-status" class="status-badge">NORMAL</span>
