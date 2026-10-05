@@ -5,190 +5,349 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard de Monitoramento de SO</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #000000;
+      --panel: linear-gradient(180deg, rgba(17, 24, 39, 0.95), rgba(15, 23, 42, 0.9));
+      --panel-border: rgba(255,255,255,0.08);
+      --text: #f3f4f6;
+      --muted: #cbd5e1;
+      --soft-label: #cbd5e1;
+      --row: rgba(255,255,255,0.02);
+      --table-border: rgba(255,255,255,0.08);
+      --pastel-pink: #f9a8d4;
+      --pastel-purple: #c4b5fd;
+      --pastel-blue: #93c5fd;
+      --pastel-mint: #a7f3d0;
+      --pastel-peach: #fdba74;
+      --pastel-yellow: #fde68a;
+      --pastel-lilac: #ddd6fe;
+      --pastel-cyan: #a5f3fc;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    body.light-mode {
+      color-scheme: light;
+      --bg: #f4f6fb;
+      --panel: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,246,251,0.96));
+      --panel-border: rgba(15,23,42,0.1);
+      --text: #0f172a;
+      --muted: #475569;
+      --soft-label: #475569;
+      --row: rgba(15,23,42,0.02);
+      --table-border: rgba(15,23,42,0.08);
+      --pastel-pink: #ec4899;
+      --pastel-purple: #8b5cf6;
+      --pastel-blue: #3b82f6;
+      --pastel-mint: #10b981;
+      --pastel-peach: #f59e0b;
+      --pastel-yellow: #facc15;
+      --pastel-lilac: #a78bfa;
+      --pastel-cyan: #06b6d4;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    #usr-temp,
+    #usr-home,
+    #sys-host,
+    #app-cwd,
+    #app-exec {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    #mem-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      white-space: nowrap;
+      overflow: hidden;
+      font-size: 9px;
+      line-height: 1;
+    }
+
+    .soft-label {
+      color: var(--soft-label);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+
+    .pastel-pink { color: var(--pastel-pink); }
+    .pastel-purple { color: var(--pastel-purple); }
+    .pastel-blue { color: var(--pastel-blue); }
+    .pastel-mint { color: var(--pastel-mint); }
+    .pastel-peach { color: var(--pastel-peach); }
+    .pastel-yellow { color: var(--pastel-yellow); }
+    .pastel-lilac { color: var(--pastel-lilac); }
+    .pastel-cyan { color: var(--pastel-cyan); }
+
+    .accent-ring {
+      border: 1px solid rgba(165, 243, 252, 0.4);
+      background: rgba(165, 243, 252, 0.06);
+    }
+
+    body.light-mode .text-white,
+    body.light-mode .text-slate-200,
+    body.light-mode .text-slate-300,
+    body.light-mode .text-slate-400,
+    body.light-mode .text-slate-500,
+    body.light-mode .text-slate-600 {
+      color: var(--text) !important;
+    }
+
+    body.light-mode .bg-slate-800\/80,
+    body.light-mode .bg-slate-800 {
+      background-color: rgba(148, 163, 184, 0.22) !important;
+    }
+
+    body.light-mode .border-slate-700 {
+      border-color: var(--table-border) !important;
+    }
+
+    body.light-mode .text-slate-400 {
+      color: var(--muted) !important;
+    }
+
+    body.light-mode .text-slate-500 {
+      color: var(--muted) !important;
+    }
+
+    body.light-mode .accent-ring {
+      border-color: rgba(96, 165, 250, 0.35);
+      background: rgba(96, 165, 250, 0.08);
+    }
+
+    body.light-mode #themeToggle {
+      color: #0f172a;
+      background: rgba(15, 23, 42, 0.06);
+      border-color: rgba(15, 23, 42, 0.15);
+    }
+
+    #themeToggle {
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      line-height: 1;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 p-6">
+<body class="font-sans p-4 md:p-6 lg:p-8">
 
-  <!-- KPI Top Header Cards -->
-  <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-    <div class="bg-white p-4 rounded-xl shadow-sm text-center">
-      <p class="text-xs text-gray-400 font-semibold uppercase">RAM</p>
-      <p id="kpi-ram" class="text-2xl font-bold mt-1">--%</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow-sm text-center">
-      <p class="text-xs text-gray-400 font-semibold uppercase">CPU Média</p>
-      <p id="kpi-cpu" class="text-2xl font-bold mt-1">--%</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow-sm text-center">
-      <p class="text-xs text-gray-400 font-semibold uppercase">Uptime</p>
-      <p id="kpi-uptime" class="text-lg font-bold mt-1">--</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow-sm text-center">
-      <p class="text-xs text-gray-400 font-semibold uppercase">Arquivos</p>
-      <p id="kpi-files" class="text-2xl font-bold mt-1">--</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow-sm text-center">
-      <p class="text-xs text-gray-400 font-semibold uppercase">IP Principal</p>
-      <p id="kpi-ip" class="text-sm font-bold mt-2">--</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow-sm text-center">
-      <p class="text-xs text-gray-400 font-semibold uppercase">Status</p>
-      <span id="kpi-status" class="inline-block mt-2 px-3 py-1 text-xs font-bold text-white bg-green-500 rounded-full">NORMAL</span>
-    </div>
-  </div>
+  <div class="mx-auto max-w-7xl">
+    <header class="mb-6 flex items-start justify-between gap-4">
+      <div>
+        <div class="soft-label pastel-cyan">Sistema</div>
+        <h1 class="mt-2 text-3xl md:text-5xl font-bold tracking-tight text-white">Monitoramento de SO</h1>
+      </div>
+      <button id="themeToggle" type="button" class="rounded-full border border-white/15 bg-white/5 text-white transition hover:bg-white/10" aria-label="Alternar tema" title="Alternar tema">
+        <ion-icon name="sunny-outline"></ion-icon>
+      </button>
+    </header>
 
-  <!-- Main Grid (3 Columns) -->
-  <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+    <div class="accent-ring rounded-2xl p-3 mb-6">
+      <div class="text-lg font-medium text-white text-center">Atualização em tempo real</div>
+    </div>
 
-    <!-- Card 1: Sistema -->
-    <div class="bg-white p-5 rounded-xl shadow-sm">
-      <h2 class="text-md font-bold mb-3 flex items-center text-pink-600">📌 Sistema</h2>
-      <div class="text-xs space-y-2">
-        <p><strong>Host:</strong> <span id="sys-host" class="break-all font-mono">--</span></p>
-        <p><strong>SO:</strong> <span id="sys-so">--</span></p>
-        <p><strong>Release:</strong> <span id="sys-release">--</span></p>
-        <p><strong>Plataforma:</strong> <span id="sys-platform">--</span></p>
-        <p><strong>Arquitetura:</strong> <span id="sys-arch">--</span></p>
-        <p><strong>Endianness:</strong> <span id="sys-endian">--</span></p>
-        <p><strong>Node:</strong> <span id="sys-node">--</span></p>
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+      <div class="panel rounded-2xl p-4 text-center">
+        <p class="soft-label pastel-pink">RAM</p>
+        <p id="kpi-ram" class="mt-3 text-3xl font-bold text-white">--%</p>
+      </div>
+      <div class="panel rounded-2xl p-4 text-center">
+        <p class="soft-label pastel-purple">CPU</p>
+        <p id="kpi-cpu" class="mt-3 text-3xl font-bold text-white">--%</p>
+      </div>
+      <div class="panel rounded-2xl p-4 text-center">
+        <p class="soft-label pastel-blue">Uptime</p>
+        <p id="kpi-uptime" class="mt-3 text-lg font-bold text-white">--</p>
+      </div>
+      <div class="panel rounded-2xl p-4 text-center">
+        <p class="soft-label pastel-yellow">Arquivos</p>
+        <p id="kpi-files" class="mt-3 text-3xl font-bold text-white">--</p>
+      </div>
+      <div class="panel rounded-2xl p-4 text-center">
+        <p class="soft-label pastel-mint">IP</p>
+        <p id="kpi-ip" class="mt-3 text-sm font-bold text-white">--</p>
+      </div>
+      <div class="panel rounded-2xl p-4 text-center">
+        <p class="soft-label pastel-peach">Status</p>
+        <span id="kpi-status" class="mt-3 inline-block rounded-full bg-emerald-400/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-300">NORMAL</span>
       </div>
     </div>
 
-    <!-- Card 2: Usuário -->
-    <div class="bg-white p-5 rounded-xl shadow-sm">
-      <h2 class="text-md font-bold mb-3 flex items-center text-purple-600">👤 Usuário</h2>
-      <div class="text-xs space-y-2">
-        <p><strong>Usuário:</strong> <span id="usr-name">--</span></p>
-        <p><strong>Home:</strong> <span id="usr-home" class="break-all">--</span></p>
-        <p><strong>Temp:</strong> <span id="usr-temp">--</span></p>
-        <p><strong>Shell:</strong> <span id="usr-shell">--</span></p>
-        <p><strong>UID:</strong> <span id="usr-uid">--</span></p>
-        <p><strong>GID:</strong> <span id="usr-gid">--</span></p>
-      </div>
-    </div>
-
-    <!-- Card 3: Memória RAM -->
-    <div class="bg-white p-5 rounded-xl shadow-sm">
-      <h2 class="text-md font-bold mb-3 flex items-center text-pink-500">🧠 Memória RAM</h2>
-      <div class="text-xs space-y-2">
-        <p><strong>Total:</strong> <span id="mem-total">--</span> GB</p>
-        <p><strong>Usada:</strong> <span id="mem-used">--</span> GB</p>
-        <p><strong>Livre:</strong> <span id="mem-free">--</span> GB</p>
-        <p><strong>Por CPU:</strong> <span id="mem-percpu">--</span> GB</p>
-        <div class="w-full bg-gray-200 rounded-full h-4 mt-2">
-          <div id="mem-bar" class="bg-blue-600 h-4 rounded-full text-center text-[10px] text-white font-bold leading-4" style="width: 0%">0%</div>
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div class="panel rounded-2xl p-5">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.2em] pastel-pink">Sistema</h2>
+        <div class="text-xs space-y-2 text-slate-200">
+          <p><strong class="text-slate-400">Host:</strong> <span id="sys-host" class="break-all font-mono text-white">--</span></p>
+          <p><strong class="text-slate-400">SO:</strong> <span id="sys-so">--</span></p>
+          <p><strong class="text-slate-400">Release:</strong> <span id="sys-release">--</span></p>
+          <p><strong class="text-slate-400">Plataforma:</strong> <span id="sys-platform">--</span></p>
+          <p><strong class="text-slate-400">Arquitetura:</strong> <span id="sys-arch">--</span></p>
+          <p><strong class="text-slate-400">Endianness:</strong> <span id="sys-endian">--</span></p>
+          <p><strong class="text-slate-400">Node:</strong> <span id="sys-node">--</span></p>
         </div>
-        <p class="text-[10px] text-gray-400 mt-1">RAM = memória principal usada pelos processos</p>
+      </div>
+
+      <div class="panel rounded-2xl p-5">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.2em] pastel-purple">Usuário</h2>
+        <div class="text-xs space-y-2 text-slate-200">
+          <p><strong class="text-slate-400">Usuário:</strong> <span id="usr-name">--</span></p>
+          <p><strong class="text-slate-400">Home:</strong> <span id="usr-home" class="break-all">--</span></p>
+          <p><strong class="text-slate-400">Temp:</strong> <span id="usr-temp">--</span></p>
+          <p><strong class="text-slate-400">Shell:</strong> <span id="usr-shell">--</span></p>
+          <p><strong class="text-slate-400">UID:</strong> <span id="usr-uid">--</span></p>
+          <p><strong class="text-slate-400">GID:</strong> <span id="usr-gid">--</span></p>
+        </div>
+      </div>
+
+      <div class="panel rounded-2xl p-5">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.2em] pastel-blue">Memória</h2>
+        <div class="text-xs space-y-2 text-slate-200">
+          <p><strong class="text-slate-400">Total:</strong> <span id="mem-total">--</span> GB</p>
+          <p><strong class="text-slate-400">Usada:</strong> <span id="mem-used">--</span> GB</p>
+          <p><strong class="text-slate-400">Livre:</strong> <span id="mem-free">--</span> GB</p>
+          <p><strong class="text-slate-400">Por CPU:</strong> <span id="mem-percpu">--</span> GB</p>
+          <div class="mt-3 h-3 w-full rounded-full bg-slate-800/80 overflow-hidden">
+            <div id="mem-bar" class="h-full rounded-full bg-gradient-to-r from-pastel-cyan to-pastel-blue text-center text-[9px] font-bold text-slate-900" style="width: 0%">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel rounded-2xl p-5">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.2em] pastel-lilac">CPU</h2>
+        <div class="text-xs space-y-2 text-slate-200">
+          <p><strong class="text-slate-400">Núcleos:</strong> <span id="cpu-cores">--</span></p>
+          <p><strong class="text-slate-400">Modelo:</strong> <span id="cpu-model" class="block truncate">--</span></p>
+          <p><strong class="text-slate-400">Load Avg:</strong> <span id="cpu-load">--</span></p>
+          <div id="cpu-cores-list" class="space-y-2 mt-3"></div>
+        </div>
+      </div>
+
+      <div class="panel rounded-2xl p-5">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.2em] pastel-mint">Rede</h2>
+        <div class="text-xs space-y-2 text-slate-200">
+          <p><strong class="text-slate-400">IP Principal:</strong> <span id="net-ip">--</span></p>
+          <p><strong class="text-slate-400">Interfaces:</strong> <span id="net-ifaces">--</span></p>
+          <div class="overflow-x-auto mt-2">
+            <table class="w-full text-left text-[10px]">
+              <thead>
+                <tr class="border-b border-slate-700 text-slate-400">
+                  <th class="py-1 pr-2">IF</th>
+                  <th class="py-1 pr-2">IP</th>
+                  <th class="py-1">Fam</th>
+                </tr>
+              </thead>
+              <tbody id="net-table"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Card 4: CPU -->
-    <div class="bg-white p-5 rounded-xl shadow-sm">
-      <h2 class="text-md font-bold mb-3 flex items-center text-indigo-600">⚙️ CPU</h2>
-      <div class="text-xs space-y-2">
-        <p><strong>Núcleos:</strong> <span id="cpu-cores">--</span></p>
-        <p><strong>Modelo:</strong> <span id="cpu-model" class="truncate block">--</span></p>
-        <p><strong>Load Avg:</strong> <span id="cpu-load">--</span></p>
-        <div id="cpu-cores-list" class="space-y-2 mt-3"></div>
-      </div>
-    </div>
-
-    <!-- Card 5: Rede -->
-    <div class="bg-white p-5 rounded-xl shadow-sm">
-      <h2 class="text-md font-bold mb-3 flex items-center text-blue-500">🌐 Rede</h2>
-      <div class="text-xs space-y-2">
-        <p><strong>IP Principal:</strong> <span id="net-ip">--</span></p>
-        <p><strong>Interfaces:</strong> <span id="net-ifaces">--</span></p>
-        <div class="overflow-x-auto mt-2">
-          <table class="w-full text-left border-collapse text-[10px]">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+      <div class="panel rounded-2xl p-5">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.2em] pastel-peach">Arquivos</h2>
+        <div class="overflow-y-auto max-h-40">
+          <table class="w-full text-left text-xs text-slate-200">
             <thead>
-              <tr class="border-b text-gray-400">
-                <th class="py-1">IF</th>
-                <th class="py-1">IP</th>
-                <th class="py-1">Família</th>
+              <tr class="border-b border-slate-700 text-slate-400">
+                <th class="pb-2 pr-2">Nome</th>
+                <th class="pb-2 pr-2">Tipo</th>
+                <th class="pb-2">Tam</th>
               </tr>
             </thead>
-            <tbody id="net-table"></tbody>
+            <tbody id="files-table"></tbody>
           </table>
         </div>
       </div>
+
+      <div class="panel rounded-2xl p-5">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.2em] pastel-yellow">Tempo</h2>
+        <div class="text-xs space-y-2 text-slate-200">
+          <p><strong class="text-slate-400">Uptime:</strong> <span id="time-uptime">--</span></p>
+          <p><strong class="text-slate-400">Timezone:</strong> <span id="time-tz">--</span></p>
+          <p><strong class="text-slate-400">ISO:</strong> <span id="time-iso" class="break-all font-mono">--</span></p>
+        </div>
+      </div>
+
+      <div class="panel rounded-2xl p-5">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.2em] pastel-pink">Aplicação</h2>
+        <div class="text-xs space-y-2 text-slate-200">
+          <p><strong class="text-slate-400">PID:</strong> <span id="app-pid">--</span></p>
+          <p><strong class="text-slate-400">Diretório:</strong> <span id="app-cwd" class="break-all">--</span></p>
+          <p><strong class="text-slate-400">Memória Node:</strong> <span id="app-mem">--</span> MB</p>
+          <p><strong class="text-slate-400">Exec Path:</strong> <span id="app-exec" class="break-all font-mono">--</span></p>
+        </div>
+      </div>
+
+      <div class="panel rounded-2xl p-5">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-[0.2em] pastel-cyan">Ambiente</h2>
+        <div class="text-xs space-y-2 text-slate-200">
+          <p><strong class="text-slate-400">Status:</strong> <span id="env-status" class="font-bold text-emerald-300">--</span></p>
+          <p><strong class="text-slate-400">PORT:</strong> <span id="env-port">--</span></p>
+          <p><strong class="text-slate-400">NODE_ENV:</strong> <span id="env-nodeenv">--</span></p>
+          <p><strong class="text-slate-400">Kernel AWS:</strong> <span id="env-aws">--</span></p>
+        </div>
+      </div>
     </div>
 
+    <footer class="mt-8 text-center text-xs text-slate-500">
+      SO Dashboard • Dark mode pastel
+    </footer>
   </div>
-
-  <!-- Bottom Grid (4 Columns) -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
-
-    <!-- Card 6: Arquivos -->
-    <div class="bg-white p-5 rounded-xl shadow-sm">
-      <h2 class="text-md font-bold mb-3 flex items-center text-yellow-600">📂 Arquivos</h2>
-      <div class="overflow-y-auto max-h-40">
-        <table class="w-full text-left text-xs">
-          <thead>
-            <tr class="border-b text-gray-400">
-              <th>Nome</th>
-              <th>Tipo</th>
-              <th>Tamanho</th>
-            </tr>
-          </thead>
-          <tbody id="files-table"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Card 7: Tempo -->
-    <div class="bg-white p-5 rounded-xl shadow-sm">
-      <h2 class="text-md font-bold mb-3 flex items-center text-red-500">⏰ Tempo</h2>
-      <div class="text-xs space-y-2">
-        <p><strong>Uptime:</strong> <span id="time-uptime">--</span></p>
-        <p><strong>Timezone:</strong> <span id="time-tz">--</span></p>
-        <p><strong>ISO:</strong> <span id="time-iso" class="break-all font-mono">--</span></p>
-        <p class="text-[10px] text-gray-400 mt-2">Uptime = tempo desde inicialização</p>
-      </div>
-    </div>
-
-    <!-- Card 8: Aplicação -->
-    <div class="bg-white p-5 rounded-xl shadow-sm">
-      <h2 class="text-md font-bold mb-3 flex items-center text-amber-600">🔒 Aplicação</h2>
-      <div class="text-xs space-y-2">
-        <p><strong>PID:</strong> <span id="app-pid">--</span></p>
-        <p><strong>Diretório:</strong> <span id="app-cwd" class="break-all">--</span></p>
-        <p><strong>Memória Node:</strong> <span id="app-mem">--</span> MB</p>
-        <p><strong>Exec Path:</strong> <span id="app-exec" class="break-all font-mono">--</span></p>
-      </div>
-    </div>
-
-    <!-- Card 9: Ambiente -->
-    <div class="bg-white p-5 rounded-xl shadow-sm">
-      <h2 class="text-md font-bold mb-3 flex items-center text-teal-600">☁️ Ambiente</h2>
-      <div class="text-xs space-y-2">
-        <p><strong>Status:</strong> <span id="env-status" class="font-bold text-teal-600">--</span></p>
-        <p><strong>PORT:</strong> <span id="env-port">--</span></p>
-        <p><strong>NODE_ENV:</strong> <span id="env-nodeenv">--</span></p>
-        <p><strong>Kernel AWS:</strong> <span id="env-aws">--</span></p>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Footer -->
-  <footer class="text-center text-xs text-gray-400 mt-8">
-    SO Dashboard 3.0 • Sistemas Operacionais • Cloud Computing
-  </footer>
 
   <script>
+    const themeToggle = document.getElementById('themeToggle');
+
+    function applyTheme(theme) {
+      const isLight = theme === 'light';
+      document.body.classList.toggle('light-mode', isLight);
+      themeToggle.innerHTML = isLight
+        ? '<ion-icon name="moon-outline"></ion-icon>'
+        : '<ion-icon name="sunny-outline"></ion-icon>';
+      themeToggle.setAttribute('aria-label', isLight ? 'Ativar dark mode' : 'Ativar light mode');
+      localStorage.setItem('theme', theme);
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const nextTheme = document.body.classList.contains('light-mode') ? 'dark' : 'light';
+      applyTheme(nextTheme);
+    });
+
     async function loadDashboard() {
       try {
         const res = await fetch('/api/system');
         const data = await res.json();
 
-        // KPIs
         document.getElementById('kpi-ram').innerText = data.kpis.ramPercent + '%';
         document.getElementById('kpi-cpu').innerText = data.kpis.cpuAvgPercent + '%';
         document.getElementById('kpi-uptime').innerText = data.kpis.uptimeFormatted;
         document.getElementById('kpi-files').innerText = data.kpis.filesCount;
         document.getElementById('kpi-ip').innerText = data.kpis.mainIp;
 
-        // Sistema
         document.getElementById('sys-host').innerText = data.sistema.hostname;
         document.getElementById('sys-so').innerText = data.sistema.so;
         document.getElementById('sys-release').innerText = data.sistema.release;
@@ -197,7 +356,6 @@
         document.getElementById('sys-endian').innerText = data.sistema.endianness;
         document.getElementById('sys-node').innerText = data.sistema.nodeVersion;
 
-        // Usuário
         document.getElementById('usr-name').innerText = data.usuario.username;
         document.getElementById('usr-home').innerText = data.usuario.homedir;
         document.getElementById('usr-temp').innerText = data.usuario.tmpdir;
@@ -205,7 +363,6 @@
         document.getElementById('usr-uid').innerText = data.usuario.uid;
         document.getElementById('usr-gid').innerText = data.usuario.gid;
 
-        // Memória RAM
         document.getElementById('mem-total').innerText = data.memoria.totalGB;
         document.getElementById('mem-used').innerText = data.memoria.usedGB;
         document.getElementById('mem-free').innerText = data.memoria.freeGB;
@@ -214,7 +371,6 @@
         memBar.style.width = data.memoria.usagePercent + '%';
         memBar.innerText = data.memoria.usagePercent + '%';
 
-        // CPU
         document.getElementById('cpu-cores').innerText = data.cpu.coresCount;
         document.getElementById('cpu-model').innerText = data.cpu.model;
         document.getElementById('cpu-load').innerText = data.cpu.loadAvg.join(' | ');
@@ -223,69 +379,63 @@
         data.cpu.cores.forEach(c => {
           cpuList.innerHTML += `
             <div>
-              <div class="flex justify-between text-[10px] text-gray-500">
+              <div class="flex justify-between text-[10px] text-slate-400">
                 <span>Core ${c.core}</span>
                 <span>${c.usage}%</span>
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-3">
-                <div class="bg-blue-600 h-3 rounded-full" style="width: ${c.usage}%"></div>
+              <div class="mt-1 h-2.5 w-full rounded-full bg-slate-800/80 overflow-hidden">
+                <div class="h-full rounded-full bg-gradient-to-r from-pastel-lilac to-pastel-blue" style="width: ${c.usage}%"></div>
               </div>
             </div>
           `;
         });
 
-        // Rede
         document.getElementById('net-ip').innerText = data.rede.mainIp;
         document.getElementById('net-ifaces').innerText = data.rede.interfacesCount;
         const netTable = document.getElementById('net-table');
         netTable.innerHTML = '';
         data.rede.list.forEach(item => {
           netTable.innerHTML += `
-            <tr class="border-b">
-              <td class="py-1">${item.iface}</td>
-              <td class="py-1 font-mono">${item.ip}</td>
-              <td class="py-1">${item.family}</td>
+            <tr class="border-b border-slate-700">
+              <td class="py-1 pr-2 text-slate-200">${item.iface}</td>
+              <td class="py-1 pr-2 font-mono text-slate-200">${item.ip}</td>
+              <td class="py-1 text-slate-300">${item.family}</td>
             </tr>
           `;
         });
 
-        // Arquivos
         const filesTable = document.getElementById('files-table');
         filesTable.innerHTML = '';
         data.arquivos.forEach(f => {
           filesTable.innerHTML += `
-            <tr class="border-b">
-              <td class="py-1 font-mono">${f.name}</td>
-              <td class="py-1">${f.type}</td>
-              <td class="py-1">${f.size}</td>
+            <tr class="border-b border-slate-700">
+              <td class="py-1 pr-2 text-slate-200">${f.name}</td>
+              <td class="py-1 pr-2 text-slate-300">${f.type}</td>
+              <td class="py-1 text-slate-300">${f.size}</td>
             </tr>
           `;
         });
 
-        // Tempo
         document.getElementById('time-uptime').innerText = data.tempo.uptimeFormatted;
         document.getElementById('time-tz').innerText = data.tempo.timezone;
         document.getElementById('time-iso').innerText = data.tempo.isoDate;
 
-        // Aplicação
         document.getElementById('app-pid').innerText = data.aplicacao.pid;
         document.getElementById('app-cwd').innerText = data.aplicacao.cwd;
         document.getElementById('app-mem').innerText = data.aplicacao.nodeMemMB;
         document.getElementById('app-exec').innerText = data.aplicacao.execPath;
 
-        // Ambiente
         document.getElementById('env-status').innerText = data.ambiente.status;
         document.getElementById('env-port').innerText = data.ambiente.port;
         document.getElementById('env-nodeenv').innerText = data.ambiente.nodeEnv;
         document.getElementById('env-aws').innerText = data.ambiente.kernelAws;
-
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
       }
     }
 
     loadDashboard();
-    setInterval(loadDashboard, 3000); // Atualiza a cada 3 segundos
+    setInterval(loadDashboard, 3000);
   </script>
 </body>
 </html>
